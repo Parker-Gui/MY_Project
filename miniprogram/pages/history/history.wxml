@@ -1,0 +1,43 @@
+<view class="history-page">
+  <navigation-bar title="多通道混合播放器" back="{{true}}" color="black" background="#FFFFFF"></navigation-bar>
+
+  <view class="history-content">
+    <view class="history-header">
+      <text class="history-title">历史记录</text>
+      <text wx:if="{{devices.length}}" class="clear-history" bindtap="handleClearHistory">清空</text>
+    </view>
+
+    <view wx:if="{{!devices.length}}" class="history-empty">
+      <image class="empty-illustration" src="./empty-state.png" mode="aspectFit"></image>
+      <text class="empty-text">还没有历史设备</text>
+    </view>
+
+    <view wx:else class="history-list">
+      <view
+        class="history-card"
+        wx:for="{{devices}}"
+        wx:key="id"
+        data-id="{{item.id}}"
+      >
+        <view class="delete-icon" data-id="{{item.id}}" catchtap="handleDeleteDevice">×</view>
+
+        <view class="device-thumb">
+          <image class="device-image" src="./device-style.png" mode="aspectFit"></image>
+        </view>
+
+        <view class="device-info">
+          <text class="device-name">{{item.name}}</text>
+          <text class="device-tip">{{item.isBound ? '点击右边解绑设备' : '点击右边连接设备'}}</text>
+        </view>
+
+        <view
+          class="action-button {{item.isBound ? 'action-button-unbind' : 'action-button-connect'}}"
+          data-id="{{item.id}}"
+          bindtap="handleDeviceAction"
+        >
+          {{item.isBound ? '解绑' : '连接'}}
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

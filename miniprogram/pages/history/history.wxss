@@ -1,0 +1,153 @@
+page {
+  min-height: 100vh;
+  background: #ffffff;
+}
+
+.history-page {
+  min-height: 100vh;
+  background: #ffffff;
+  color: #2d2d2d;
+}
+
+.history-content {
+  padding: 150rpx 26rpx 80rpx;
+  box-sizing: border-box;
+}
+
+.history-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.history-title {
+  color: #9c9c9c;
+  font-size: 42rpx;
+  line-height: 58rpx;
+}
+
+.clear-history {
+  color: #9c9c9c;
+  font-size: 28rpx;
+  line-height: 40rpx;
+}
+
+.history-list {
+  margin-top: 62rpx;
+}
+
+.history-empty {
+  height: 760rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding-top: 80rpx;
+  box-sizing: border-box;
+}
+
+.empty-illustration {
+  width: 270rpx;
+  height: 230rpx;
+}
+
+.empty-text {
+  margin-top: 42rpx;
+  color: #8d8d8d;
+  font-size: 35rpx;
+  line-height: 52rpx;
+}
+
+.history-card {
+  position: relative;
+  height: 156rpx;
+  display: flex;
+  align-items: center;
+  margin-bottom: 30rpx;
+  padding: 26rpx 28rpx 26rpx 34rpx;
+  border: 2rpx solid #ededf2;
+  border-radius: 28rpx;
+  background: #ffffff;
+  box-shadow: 0 14rpx 34rpx rgba(33, 38, 54, 0.04);
+  box-sizing: border-box;
+}
+
+.delete-icon {
+  position: absolute;
+  right: -18rpx;
+  top: -18rpx;
+  width: 52rpx;
+  height: 52rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #f31b33;
+  color: #ffffff;
+  font-size: 46rpx;
+  line-height: 52rpx;
+}
+
+.device-thumb {
+  width: 112rpx;
+  height: 100rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 28rpx;
+}
+
+.device-image {
+  width: 120rpx;
+  height: 98rpx;
+}
+
+.device-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.device-name {
+  font-size: 32rpx;
+  line-height: 44rpx;
+  color: #2d2d2d;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.device-tip {
+  margin-top: 8rpx;
+  font-size: 25rpx;
+  line-height: 36rpx;
+  color: #9a9a9a;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.action-button {
+  width: 132rpx;
+  height: 72rpx;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 0 0 20rpx;
+  padding: 0;
+  border-radius: 36rpx;
+  color: #ffffff;
+  font-size: 30rpx;
+  line-height: 72rpx;
+  box-sizing: border-box;
+}
+
+.action-button-unbind {
+  background: #f31b33;
+}
+
+.action-button-connect {
+  background: #08a455;
+}

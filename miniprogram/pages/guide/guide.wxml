@@ -1,0 +1,47 @@
+<view class="guide-page">
+  <navigation-bar title="多通道混合播放器" back="{{false}}" color="black" background="#FFFFFF"></navigation-bar>
+
+  <view wx:if="{{!isScanning}}" class="guide-body guide-body-empty">
+    <view class="history-entry" bindtap="handleOpenHistory">历史记录</view>
+
+    <view class="empty-state">
+      <image class="empty-illustration" src="./empty-state.png" mode="aspectFit"></image>
+
+      <text class="empty-text">还没记录呢，请添加设备~</text>
+    </view>
+
+    <view class="footer footer-with-button">
+      <button class="scan-button" hover-class="scan-button-hover" bindtap="handleStartScan">开始扫描</button>
+      <text class="brand">迈远科技</text>
+    </view>
+  </view>
+
+  <view wx:else class="guide-body guide-body-scanning">
+    <view class="scan-panel">
+      <image class="stop-scan-image" src="./stop-scan.png" mode="aspectFit" bindtap="handleStopScan"></image>
+    </view>
+
+    <scroll-view class="device-list" scroll-y type="list">
+      <view
+        class="device-card {{item.isConnecting ? 'device-card-connecting' : ''}} {{item.isConnected ? 'device-card-connected' : ''}}"
+        wx:for="{{mockDevices}}"
+        wx:key="id"
+        data-id="{{item.id}}"
+        bindtap="handleConnectDevice"
+      >
+        <view class="device-thumb">
+          <image class="device-image" src="./device-style.png" mode="aspectFit"></image>
+        </view>
+        <view class="device-info">
+          <text class="device-name">{{item.name}}</text>
+          <text class="device-tip">{{item.tip}}</text>
+        </view>
+        <view class="device-status {{item.isConnecting ? 'device-status-connecting' : ''}} {{item.isConnected ? 'device-status-connected' : ''}}">{{item.status}}</view>
+      </view>
+    </scroll-view>
+
+    <view class="footer footer-brand-only">
+      <text class="brand">迈远科技</text>
+    </view>
+  </view>
+</view>

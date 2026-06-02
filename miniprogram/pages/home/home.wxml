@@ -1,0 +1,251 @@
+<view class="home-page">
+  <navigation-bar title="{{currentDeviceName}}" back="{{true}}" color="#FFFFFF" background="transparent"></navigation-bar>
+  <view class="home-back-button" bindtap="handleBackToGuide">‹</view>
+
+  <scroll-view class="home-scroll" scroll-y enhanced show-scrollbar="{{false}}" type="list">
+    <view class="home-content {{isBluetoothOff ? 'home-content-bluetooth-off' : ''}}">
+      <view class="top-controls">
+        <view class="pill lock-pill" bindtap="handleChildLockTap">
+          <image class="lock-icon" src="./unlock.png" mode="aspectFit"></image>
+        </view>
+        <view class="pill timer-pill" bindtap="handleOpenTimeSheet">
+          <image class="alarm-icon" src="./alarm.png" mode="aspectFit"></image>
+          <text class="timer-text">{{timerText}}</text>
+        </view>
+        <view class="pill disconnect-pill" bindtap="handleDisconnectDevice">断开</view>
+      </view>
+      <view class="debug-entry" bindtap="handleOpenBluetoothDebug">调试</view>
+      <view class="connection-status {{connectionStatusText === '已断开' || connectionStatusText === '同步失败' || connectionStatusText === '重连中' ? 'connection-status-off' : ''}}">
+        {{connectionStatusText}}
+      </view>
+
+      <view wx:if="{{childLockMessage}}" class="child-lock-tip">
+        {{childLockMessage}}
+      </view>
+
+      <view class="player-card bluetooth-state-target">
+        <view class="record-stage">
+          <image class="record-image" src="./record.png" mode="aspectFit" bindtap="handleRecordTap"></image>
+        </view>
+
+        <text class="playing-text">正在播放：{{currentSong || scenes[selectedSceneIndex]}}</text>
+        <view class="music-control-row">
+          <view class="music-control-button" data-action="prev" bindtap="handleMusicControlTap">‹</view>
+          <view class="music-play-button" bindtap="handlePlayToggle">{{isPlaying ? '暂停' : '播放'}}</view>
+          <view class="music-control-button" data-action="next" bindtap="handleMusicControlTap">›</view>
+        </view>
+
+        <view class="volume-row">
+          <view class="sound-toggle" bindtap="handleSoundToggle">
+            <image class="sound-icon" src="./sound.png" mode="aspectFit"></image>
+            <text wx:if="{{isMuted}}" class="mute-mark">×</text>
+          </view>
+          <slider
+            class="volume-slider"
+            min="0"
+            max="100"
+            value="{{volume}}"
+            block-size="28"
+            activeColor="{{isMuted ? '#ffffff' : '#2d86ff'}}"
+            backgroundColor="#ffffff"
+            block-color="#2d86ff"
+            bindchange="handleVolumeChange"
+            bindchanging="handleVolumeChange"
+          />
+          <text class="volume-value">{{volume}}%</text>
+        </view>
+
+        <image class="side-music-button" src="./music.png" mode="aspectFit" bindtap="handleOpenSongSheet"></image>
+      </view>
+
+      <view class="shortcut-row">
+        <view
+          class="shortcut-button {{activeShortcut === 'bluetooth' ? 'shortcut-button-active' : ''}}"
+          data-action="bluetooth"
+          bindtap="handleShortcutTap"
+        >
+          <image class="shortcut-icon" src="./bluetooth.png" mode="aspectFit"></image>
+        </view>
+        <view
+          class="shortcut-button {{activeShortcut === 'playlist' ? 'shortcut-button-active' : ''}}"
+          data-action="playlist"
+          bindtap="handleShortcutTap"
+        >
+          <image class="shortcut-icon" src="./edit.png" mode="aspectFit"></image>
+        </view>
+        <view
+          class="shortcut-button {{activeShortcut === 'light' ? 'shortcut-button-active' : ''}}"
+          data-action="light"
+          bindtap="handleShortcutTap"
+        >
+          <image class="shortcut-icon" src="./light.png" mode="aspectFit"></image>
+        </view>
+      </view>
+
+      <view class="scene-panel bluetooth-state-target">
+        <view class="scene-header">
+          <view class="scene-title">
+            <image class="scene-icon" src="./scene-adjust.png" mode="aspectFit"></image>
+            <text>情景模式</text>
+          </view>
+          <image class="settings-icon" src="./settings.png" mode="aspectFit" bindtap="handleOpenSceneManage"></image>
+        </view>
+
+        <view class="scene-grid">
+          <view
+            class="scene-item {{index === selectedSceneIndex ? 'scene-item-active' : ''}}"
+            wx:for="{{scenes}}"
+            wx:key="*this"
+            data-index="{{index}}"
+            bindtap="handleSceneTap"
+          >
+            {{item}}
+          </view>
+          <image class="scene-add-icon" src="./add.png" mode="aspectFit" bindtap="handleAddScene"></image>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+
+  <view wx:if="{{showSongSheet || showPlaylistSheet || showSceneChannelSheet}}" class="song-mask" bindtap="handleCloseActiveSheet"></view>
+  <view wx:if="{{showSongSheet}}" class="song-sheet">
+    <view class="sheet-handle" bindtap="handleCloseSongSheet"></view>
+    <text class="sheet-title">歌曲列表</text>
+
+    <view class="song-tabs">
+      <view
+        class="song-tab {{index === selectedSongCategoryIndex ? 'song-tab-active' : ''}}"
+        wx:for="{{songCategories}}"
+        wx:key="*this"
+        data-index="{{index}}"
+        bindtap="handleSongCategoryTap"
+      >
+        {{item}}
+      </view>
+    </view>
+
+    <scroll-view class="song-scroll" scroll-y type="list">
+      <view class="song-grid">
+        <view
+          class="song-item"
+          wx:for="{{songs}}"
+          wx:key="*this"
+          data-name="{{item}}"
+          bindtap="handleSongTap"
+        >
+          <view class="song-cover">
+            <image class="song-cover-image" src="./bird-song.png" mode="aspectFill"></image>
+            <image class="song-play-icon" src="./play-music.png" mode="aspectFit"></image>
+          </view>
+          <text class="song-name">{{item}}</text>
+        </view>
+      </view>
+      <view class="sheet-loading">已显示全部</view>
+    </scroll-view>
+  </view>
+
+  <view wx:if="{{showPlaylistSheet}}" class="song-sheet playlist-sheet">
+    <view class="sheet-handle" bindtap="handleCloseSongSheet"></view>
+    <text class="sheet-title">播放列表</text>
+
+    <view class="song-tabs">
+      <view
+        class="song-tab {{index === selectedSongCategoryIndex ? 'song-tab-active' : ''}}"
+        wx:for="{{songCategories}}"
+        wx:key="*this"
+        data-index="{{index}}"
+        bindtap="handleSongCategoryTap"
+      >
+        {{item}}
+      </view>
+    </view>
+
+    <scroll-view class="playlist-scroll" scroll-y type="list">
+      <view
+        class="playlist-card"
+        wx:for="{{playlistSongs}}"
+        wx:key="name"
+        data-name="{{item.name}}"
+        bindtap="handlePlaylistSongTap"
+      >
+        <image class="playlist-cover" src="./bird-song.png" mode="aspectFill"></image>
+        <view class="playlist-info">
+          <text class="playlist-name">曲名：{{item.name}}</text>
+          <text class="playlist-desc">{{item.desc}}</text>
+        </view>
+        <image class="playlist-play" src="./play-music.png" mode="aspectFit"></image>
+      </view>
+      <view class="sheet-loading">已显示全部</view>
+    </scroll-view>
+  </view>
+
+  <view wx:if="{{showSceneChannelSheet}}" class="scene-channel-sheet">
+    <view class="sheet-handle" bindtap="handleCloseSceneChannelSheet"></view>
+    <text class="sheet-title">{{scenes[selectedSceneIndex]}} 设置</text>
+
+    <view class="scene-total-card">
+      <text class="scene-total-title">总音量</text>
+      <image class="scene-row-sound" src="./sound.png" mode="aspectFit"></image>
+      <slider
+        class="scene-total-slider"
+        min="0"
+        max="100"
+        value="{{sceneTotalVolume}}"
+        block-size="28"
+        activeColor="#2d86ff"
+        backgroundColor="#ffffff"
+        block-color="#2d86ff"
+        bindchange="handleSceneTotalVolumeChange"
+        bindchanging="handleSceneTotalVolumeChange"
+      />
+      <text class="scene-volume-text">{{sceneTotalVolume}}%</text>
+    </view>
+
+    <scroll-view class="scene-channel-scroll" scroll-y type="list">
+      <view
+        class="scene-channel-row"
+        wx:for="{{sceneChannels}}"
+        wx:key="id"
+      >
+        <view class="scene-channel-cover">
+          <view class="scene-channel-cover-bg cover-bg-{{item.coverIndex % 3}}"></view>
+          <view class="scene-channel-cover-hole"></view>
+          <view wx:if="{{item.status === 0}}" class="scene-channel-badge">×</view>
+        </view>
+        <image class="scene-row-sound" src="./sound.png" mode="aspectFit"></image>
+        <slider
+          class="scene-row-slider"
+          min="0"
+          max="100"
+          value="{{item.volume}}"
+          block-size="26"
+          activeColor="{{item.status === 1 ? '#2d86ff' : '#ffffff'}}"
+          backgroundColor="#ffffff"
+          block-color="#2d86ff"
+          data-id="{{item.id}}"
+          bindchange="handleSceneChannelVolumeChange"
+          bindchanging="handleSceneChannelVolumeChange"
+        />
+        <text class="scene-volume-text">{{item.volume}}%</text>
+        <view class="scene-status-pill scene-status-{{item.status}}">{{item.statusText}}</view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <view wx:if="{{showTimeSheet}}" class="time-mask" bindtap="handleCloseTimeSheet"></view>
+  <view wx:if="{{showTimeSheet}}" class="time-sheet">
+    <text class="time-sheet-title">时间选择</text>
+    <view class="time-option-list">
+      <view
+        class="time-option"
+        wx:for="{{timerOptions}}"
+        wx:key="label"
+        data-index="{{index}}"
+        bindtap="handleTimeOptionTap"
+      >
+        <text>{{item.label}}</text>
+        <text wx:if="{{index === selectedTimeIndex}}" class="time-option-check">✓</text>
+      </view>
+    </view>
+  </view>
+</view>

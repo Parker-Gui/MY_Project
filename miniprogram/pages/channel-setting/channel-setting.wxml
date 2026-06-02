@@ -1,0 +1,103 @@
+<view class="channel-page">
+  <navigation-bar title="声道设置" back="{{true}}" color="#FFFFFF" background="transparent"></navigation-bar>
+
+  <scroll-view class="channel-scroll" scroll-y type="list">
+    <view class="channel-content">
+      <view class="panel-handle"></view>
+      <view class="title-row">
+        <text class="page-title">场景{{sceneNumber}} 声道设置</text>
+        <text class="close-text" bindtap="handleBack">×</text>
+      </view>
+
+      <view class="scene-preview">
+        <view class="preview-cover" bindtap="handleOpenImageLibrary">
+          <view class="preview-cover-bg cover-bg-{{selectedCoverIndex}}"></view>
+          <view class="edit-badge">✎</view>
+        </view>
+        <view class="scene-name">场景{{sceneNumber}}</view>
+      </view>
+
+      <view class="total-card">
+        <text class="total-title">总音量</text>
+        <image class="sound-icon" src="./sound.png" mode="aspectFit"></image>
+        <slider
+          class="total-slider"
+          min="0"
+          max="100"
+          value="{{totalVolume}}"
+          block-size="30"
+          activeColor="#2d86ff"
+          backgroundColor="#ffffff"
+          block-color="#2d86ff"
+          bindchange="handleTotalVolumeChange"
+          bindchanging="handleTotalVolumeChange"
+        />
+        <text class="volume-text">{{totalVolume}}%</text>
+      </view>
+
+      <scroll-view class="channel-list-scroll" scroll-y type="list">
+        <view class="channel-list">
+          <view
+            class="channel-row"
+            wx:for="{{channels}}"
+            wx:key="id"
+            data-id="{{item.id}}"
+          >
+            <view class="channel-cover">
+              <view class="channel-cover-bg cover-bg-{{item.coverIndex}}"></view>
+              <view class="channel-cover-hole"></view>
+              <view wx:if="{{item.removable}}" class="delete-badge" catchtap="handleDeleteChannel" data-id="{{item.id}}">×</view>
+            </view>
+            <image class="row-sound-icon" src="./sound.png" mode="aspectFit"></image>
+            <slider
+              class="row-slider"
+              min="0"
+              max="100"
+              value="{{item.volume}}"
+              block-size="28"
+              activeColor="{{item.enabled ? '#2d86ff' : '#ffffff'}}"
+              backgroundColor="#ffffff"
+              block-color="#2d86ff"
+              data-id="{{item.id}}"
+              bindchange="handleChannelVolumeChange"
+              bindchanging="handleChannelVolumeChange"
+            />
+            <text class="row-volume">{{item.volume}}%</text>
+            <switch
+              class="channel-switch"
+              checked="{{item.enabled}}"
+              color="#2d86ff"
+              data-id="{{item.id}}"
+              bindchange="handleChannelSwitchChange"
+            />
+          </view>
+        </view>
+      </scroll-view>
+
+      <view class="action-row">
+        <button class="save-button" bindtap="handleSave">保存</button>
+        <button class="reset-button" bindtap="handleReset">重置</button>
+      </view>
+    </view>
+  </scroll-view>
+
+  <view wx:if="{{showImageLibrary}}" class="library-mask" bindtap="handleCloseImageLibrary"></view>
+  <view wx:if="{{showImageLibrary}}" class="library-sheet">
+    <view class="library-header">
+      <text class="library-title">场景图片库</text>
+      <text class="library-close" bindtap="handleCloseImageLibrary">×</text>
+    </view>
+    <view class="library-grid">
+      <view
+        class="library-cover {{index === selectedCoverIndex ? 'library-cover-active' : ''}}"
+        wx:for="{{coverOptions}}"
+        wx:key="*this"
+        data-index="{{index}}"
+        bindtap="handleCoverTap"
+      >
+        <view class="library-cover-bg cover-bg-{{index}}"></view>
+        <view wx:if="{{index === selectedCoverIndex}}" class="library-check">✓</view>
+      </view>
+    </view>
+  </view>
+</view>

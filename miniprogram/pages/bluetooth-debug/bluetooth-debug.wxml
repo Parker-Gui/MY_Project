@@ -1,0 +1,51 @@
+<view class="debug-page">
+  <navigation-bar title="蓝牙调试" back="{{true}}" color="#FFFFFF" background="#111111"></navigation-bar>
+
+  <scroll-view class="debug-scroll" scroll-y type="list">
+    <view class="debug-content">
+      <view class="debug-section">
+        <view class="section-title">连接信息</view>
+        <view class="info-row">
+          <text class="info-label">设备</text>
+          <text class="info-value">{{deviceName}}</text>
+        </view>
+        <view class="info-row">
+          <text class="info-label">deviceId</text>
+          <text class="info-value info-code">{{deviceId}}</text>
+        </view>
+      </view>
+
+      <view class="debug-section">
+        <view class="section-title">服务 UUID</view>
+        <text class="code-line" wx:for="{{services}}" wx:key="*this">{{item}}</text>
+      </view>
+
+      <view class="debug-section">
+        <view class="section-title">特征值 UUID</view>
+        <text class="code-line" wx:for="{{characteristics}}" wx:key="*this">{{item}}</text>
+      </view>
+
+      <view class="action-row">
+        <button class="debug-button" bindtap="handleRefresh">刷新</button>
+        <button class="debug-button debug-button-danger" bindtap="handleClearLogs">清空日志</button>
+      </view>
+
+      <view class="debug-section">
+        <view class="section-title">最近日志</view>
+        <view wx:if="{{!logs.length}}" class="empty-log">暂无蓝牙日志</view>
+        <view
+          wx:for="{{logs}}"
+          wx:key="id"
+          class="log-card {{item.status === '失败' ? 'log-card-fail' : ''}}"
+        >
+          <view class="log-header">
+            <text>{{item.time}}</text>
+            <text>{{item.direction}} · {{item.status}}</text>
+          </view>
+          <text class="log-hex">{{item.hex}}</text>
+          <text wx:if="{{item.message}}" class="log-message">{{item.message}}</text>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+</view>

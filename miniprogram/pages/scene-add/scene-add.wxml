@@ -1,0 +1,74 @@
+<view class="scene-add-page">
+  <navigation-bar title="增加一场景" back="{{true}}" color="#FFFFFF" background="transparent"></navigation-bar>
+
+  <scroll-view class="scene-add-scroll" scroll-y type="list">
+    <view class="scene-add-content">
+      <view class="panel-handle"></view>
+      <text class="page-title">增加-场景{{sceneNumber}}</text>
+
+      <view class="total-volume-card">
+        <text class="total-volume-title">总音量</text>
+        <image class="volume-icon" src="./sound.png" mode="aspectFit"></image>
+        <slider
+          class="total-volume-slider"
+          min="0"
+          max="100"
+          value="{{totalVolume}}"
+          block-size="30"
+          activeColor="#2d86ff"
+          backgroundColor="#ffffff"
+          block-color="#2d86ff"
+          bindchange="handleTotalVolumeChange"
+          bindchanging="handleTotalVolumeChange"
+        />
+        <text class="volume-value">{{totalVolume}}%</text>
+      </view>
+
+      <view class="sound-list">
+        <view
+          class="sound-row"
+          wx:for="{{soundItems}}"
+          wx:key="id"
+          data-id="{{item.id}}"
+        >
+          <view class="sound-cover" bindtap="handleOpenChannelSetting">
+            <view class="sound-cover-bg cover-bg-{{item.coverIndex}}"></view>
+            <view class="sound-cover-hole"></view>
+          </view>
+
+          <view class="sound-control">
+            <view class="sound-control-line">
+              <image class="row-volume-icon" src="./sound.png" mode="aspectFit"></image>
+              <slider
+                class="row-slider"
+                min="0"
+                max="100"
+                value="{{item.volume}}"
+                block-size="28"
+                activeColor="{{item.enabled ? '#2d86ff' : '#ffffff'}}"
+                backgroundColor="#ffffff"
+                block-color="#2d86ff"
+                data-id="{{item.id}}"
+                bindchange="handleSoundVolumeChange"
+                bindchanging="handleSoundVolumeChange"
+              />
+              <text class="row-volume-value">{{item.volume}}%</text>
+              <switch
+                class="sound-switch"
+                checked="{{item.enabled}}"
+                color="#2d86ff"
+                data-id="{{item.id}}"
+                bindchange="handleSoundSwitchChange"
+              />
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <view class="action-row">
+        <button class="save-button" bindtap="handleSave">保存</button>
+        <button class="reset-button" bindtap="handleReset">重置</button>
+      </view>
+    </view>
+  </scroll-view>
+</view>

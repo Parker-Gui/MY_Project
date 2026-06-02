@@ -1,0 +1,31 @@
+<view class="scene-manage-page">
+  <navigation-bar title="我的场景" back="{{true}}" color="#FFFFFF" background="transparent"></navigation-bar>
+
+  <scroll-view class="scene-manage-scroll" scroll-y type="list">
+    <view class="scene-manage-content">
+      <view class="panel-handle"></view>
+      <text class="page-title">我的场景</text>
+
+      <view class="scene-manage-grid">
+        <view
+          class="manage-scene-item {{index % 3 === 2 ? 'manage-scene-item-last' : ''}}"
+          wx:for="{{scenes}}"
+          wx:key="id"
+          data-id="{{item.id}}"
+          bindtap="handleSceneTap"
+        >
+          <view class="scene-cover {{item.id === selectedSceneId ? 'scene-cover-active' : ''}}">
+            <view class="scene-cover-bg scene-cover-bg-{{index % 4}}"></view>
+            <view class="scene-cover-hole"></view>
+            <view class="delete-badge" catchtap="handleDeleteScene" data-id="{{item.id}}">×</view>
+          </view>
+          <view class="scene-name">{{item.name}}</view>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+
+  <view class="scene-manage-footer">
+    <button class="save-button" bindtap="handleSave">保存</button>
+  </view>
+</view>

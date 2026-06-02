@@ -1,0 +1,31 @@
+{
+  "pages": [
+    "pages/guide/guide",
+    "pages/home/home",
+    "pages/scene-manage/scene-manage",
+    "pages/scene-add/scene-add",
+    "pages/channel-setting/channel-setting",
+    "pages/bluetooth-debug/bluetooth-debug",
+    "pages/history/history",
+    "pages/index/index",
+    "pages/logs/logs"
+  ],
+  "window": {
+    "navigationBarTextStyle": "black",
+    "navigationStyle": "custom"
+  },
+  "style": "v2",
+  "renderer": "skyline",
+  "rendererOptions": {
+    "skyline": {
+      "defaultDisplayBlock": true,
+      "defaultContentBox": true,
+      "disableABTest": true,
+      "sdkVersionBegin": "3.0.0",
+      "sdkVersionEnd": "15.255.255"
+    }
+  },
+  "componentFramework": "glass-easel",
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents"
+}
