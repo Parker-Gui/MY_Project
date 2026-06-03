@@ -42,13 +42,21 @@ const createDefaultScenes = (): SceneItem[] => [
   { id: 6, name: '场景6' },
 ]
 
+const normalizeSceneName = (scene: SceneItem, index: number) => {
+  if (typeof scene.name === 'string' && /^场景\d+$/.test(scene.name)) {
+    return scene.name
+  }
+
+  return `场景${scene.id || index + 1}`
+}
+
 const readLocalScenes = () => {
   const storedScenes = wx.getStorageSync(SCENE_STORAGE_KEY) as SceneItem[] | ''
 
   if (Array.isArray(storedScenes) && storedScenes.length) {
     const normalizedScenes = storedScenes.map((scene, index) => ({
       ...scene,
-      name: typeof scene.name === 'string' && !scene.name.includes('鍦') ? scene.name : `场景${scene.id || index + 1}`,
+      name: normalizeSceneName(scene, index),
     }))
 
     if (normalizedScenes.some((scene, index) => scene.name !== storedScenes[index].name)) {
@@ -134,16 +142,12 @@ Page({
   },
 
 
-  /**
-   * 璋冩暣鎬婚煶閲忥紝淇濆瓨鏃剁粺涓€鍚屾鍒拌澶囥€?   */
   handleTotalVolumeChange(e: WechatMiniprogram.CustomEvent<{ value: number }>) {
     this.setData({
       totalVolume: e.detail.value,
     })
   },
 
-  /**
-   * 璋冩暣鏌愪釜澹伴煶鏉＄洰鐨勯煶閲忥紝淇濆瓨鏃剁粺涓€鍚屾鍒拌澶囥€?   */
   handleSoundVolumeChange(e: WechatMiniprogram.CustomEvent<{ id: number, value: number }>) {
     const { id, value } = e.detail
     const soundItems = this.data.soundItems.map((item) => {
@@ -162,8 +166,6 @@ Page({
     })
   },
 
-  /**
-   * 鍒囨崲澹伴煶鏉＄洰寮€鍏筹紝淇濆瓨鏃剁粺涓€鍚屾鍒拌澶囥€?   */
   handleSoundSwitchChange(e: WechatMiniprogram.CustomEvent<{ id: number }>) {
     const { id } = e.detail
     const soundItems = this.data.soundItems.map((item) => {

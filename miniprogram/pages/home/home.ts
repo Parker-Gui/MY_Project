@@ -1,4 +1,4 @@
-import {
+﻿import {
   disconnect as disconnectBluetooth,
   onConnectionStateChange,
   onReceive,
@@ -111,13 +111,21 @@ const createDefaultScenes = (): LocalSceneItem[] => [
   { id: 6, name: '场景6' },
 ]
 
+const normalizeSceneName = (scene: LocalSceneItem, index: number) => {
+  if (typeof scene.name === 'string' && /^场景\d+$/.test(scene.name)) {
+    return scene.name
+  }
+
+  return `场景${scene.id || index + 1}`
+}
+
 const readLocalScenes = () => {
   const storedScenes = wx.getStorageSync(SCENE_STORAGE_KEY) as LocalSceneItem[] | ''
 
   if (Array.isArray(storedScenes) && storedScenes.length) {
     const normalizedScenes = storedScenes.map((scene, index) => ({
       ...scene,
-      name: typeof scene.name === 'string' && !scene.name.includes('鍦') ? scene.name : `场景${scene.id || index + 1}`,
+      name: normalizeSceneName(scene, index),
     }))
 
     if (normalizedScenes.some((scene, index) => scene.name !== storedScenes[index].name)) {
@@ -198,7 +206,7 @@ Page({
       { label: '15分钟', seconds: 15 * 60 },
       { label: '30分钟', seconds: 30 * 60 },
       { label: '45分钟', seconds: 45 * 60 },
-      { label: '一个小时', seconds: 60 * 60 },
+      { label: '1个小时', seconds: 60 * 60 },
       { label: '2个小时', seconds: 2 * 60 * 60 },
     ],
     showSongSheet: false,
@@ -214,8 +222,8 @@ Page({
     songs: ['01 鸟声', '02 鸟声', '03 鸟声', '04 鸟声', '05 鸟声', '06 鸟声', '07 鸟声'],
     playlistSongs: [
       { name: '01 鸟鸣', desc: '出自于大自然世界' },
-      { name: '02麻雀', desc: '出自于大自然世界' },
-      { name: '03鸟鸣', desc: '出自于大自然世界' },
+      { name: '02 麻雀', desc: '出自于大自然世界' },
+      { name: '03 鸟鸣', desc: '出自于大自然世界' },
     ],
     currentSong: '',
     isPlaying: false,
@@ -234,7 +242,7 @@ Page({
 
     if (!currentDevice) {
       wx.showToast({
-        title: '请先连接设备',
+        title: '璇峰厛杩炴帴璁惧',
         icon: 'none',
       })
 
@@ -258,18 +266,14 @@ Page({
     this.requestDeviceInitialSync()
   },
 
-  /**
-   * 监听 FFE8 通知。设备上报只同步页面状态，不反向发送控制指令。
-   */
+  // 监听设备上报，只同步页面状态，不反向发送控制指令。
   bindDeviceReports() {
     onReceive((hex) => {
       this.handleDeviceReport(hex)
     })
   },
 
-  /**
-   * 监听真实 BLE 断开事件，统一更新首页和历史记录状态。
-   */
+  // 监听 BLE 连接状态，统一更新首页和历史记录状态。
   bindConnectionState() {
     onConnectionStateChange((state) => {
       if (state.deviceId !== this.data.currentDeviceId) {
@@ -363,9 +367,7 @@ Page({
     })
   },
 
-  /**
-   * 解析设备上报帧，并把 DP 数据落到现有首页状态。
-   */
+  // 解析设备上报帧，并同步到首页状态。
   handleDeviceReport(hex: string) {
     try {
       const parsed = parseFrameData(hex)
@@ -417,7 +419,6 @@ Page({
       // 真实设备调试期可能返回不完整帧，解析失败时保持页面当前状态。
     }
   },
-
   syncCountdownReport(seconds: number) {
     this.setData({
       remainingSeconds: seconds,
@@ -506,7 +507,9 @@ Page({
     this.setData({
       ...currentData,
       sceneChannels: channels,
-      sceneTotalVolume: this.getSceneChannelsAverageVolume(channels),
+      sceneTotalVolume: storedConfig && typeof storedConfig === 'object' && typeof storedConfig.totalVolume === 'number'
+        ? storedConfig.totalVolume
+        : this.getSceneChannelsAverageVolume(channels),
     })
   },
 
@@ -616,8 +619,9 @@ Page({
     return Math.round(channels.reduce((sum, channel) => sum + channel.volume, 0) / channels.length)
   },
 
-  persistCurrentSceneChannels(channels: SceneChannelView[], totalVolume = this.getSceneChannelsAverageVolume(channels)) {
+  persistCurrentSceneChannels(channels: SceneChannelView[], totalVolume?: number) {
     const sceneNumber = this.data.selectedSceneIndex + 1
+    const nextTotalVolume = typeof totalVolume === 'number' ? totalVolume : this.getSceneChannelsAverageVolume(channels)
     const plainChannels = channels.map((channel) => ({
       id: channel.id,
       volume: channel.volume,
@@ -631,7 +635,7 @@ Page({
     ))
 
     wx.setStorageSync(getChannelConfigKey(sceneNumber), {
-      totalVolume,
+      totalVolume: nextTotalVolume,
       selectedCoverIndex: plainChannels[0] ? plainChannels[0].coverIndex : 0,
       channels: plainChannels,
       deletedChannelIds,
@@ -657,6 +661,17 @@ Page({
     }
 
     return this.toSceneChannelViews([])
+  },
+
+  getCurrentSceneTotalVolume(channels: SceneChannelView[]) {
+    const sceneNumber = this.data.selectedSceneIndex + 1
+    const storedConfig = wx.getStorageSync(getChannelConfigKey(sceneNumber)) as ChannelConfig | ''
+
+    if (storedConfig && typeof storedConfig === 'object' && typeof storedConfig.totalVolume === 'number') {
+      return storedConfig.totalVolume
+    }
+
+    return this.getSceneChannelsAverageVolume(channels)
   },
 
   buildCurrentSceneChannels(songId: number) {
@@ -728,9 +743,7 @@ Page({
     })
   },
 
-  /**
-   * 进入首页后触发设备重新上报场景数据，用于把本地页面初始化到真实设备状态。
-   */
+  // 进入首页后请求设备重新上报场景数据。
   async requestDeviceInitialSync() {
     if (this.data.isInitializingDevice || this.data.isBluetoothOff) {
       return
@@ -781,9 +794,7 @@ Page({
     }
   },
 
-  /**
-   * 蓝牙关闭态下禁用控制类交互，后续接入真实蓝牙状态后替换。
-   */
+  // 蓝牙不可用时拦截控制类交互。
   guardBluetoothAvailable() {
     if (!this.data.isBluetoothOff) {
       return true
@@ -797,9 +808,7 @@ Page({
     return false
   },
 
-  /**
-   * 返回引导页。若页面栈不存在上一页，则直接重启到引导页。
-   */
+  // 返回引导页。
   handleBackToGuide() {
     wx.setStorageSync(RESET_GUIDE_STORAGE_KEY, true)
 
@@ -813,9 +822,7 @@ Page({
     })
   },
 
-  /**
-   * 本地断开当前设备：清除当前设备，更新历史记录状态，并返回引导页。
-   */
+  // 本地断开当前设备，并返回引导页。
   handleDisconnectDevice() {
     wx.showModal({
       title: '断开设备',
@@ -866,9 +873,7 @@ Page({
     })
   },
 
-  /**
-   * 快捷按钮单选高亮，不接入设备控制。
-   */
+  // 快捷按钮交互。
   async handleShortcutTap(e: WechatMiniprogram.TouchEvent) {
     const action = e.currentTarget.dataset.action as string
 
@@ -921,9 +926,7 @@ Page({
     })
   },
 
-  /**
-   * 音量滑动只更新页面状态，不发送蓝牙指令。
-   */
+  // 音量滑动只更新页面状态。
   handleVolumeChange(e: WechatMiniprogram.SliderChange) {
     if (!this.guardBluetoothAvailable()) {
       return
@@ -938,9 +941,7 @@ Page({
     })
   },
 
-  /**
-   * 点击声音图标切换静音，恢复时回到上一次非 0 音量。
-   */
+  // 点击声音图标切换静音。
   async handleSoundToggle() {
     if (!this.guardBluetoothAvailable()) {
       return
@@ -974,9 +975,7 @@ Page({
     })
   },
 
-  /**
-   * 静态占位：切换选中的情景模式，不发送协议指令。
-   */
+  // 切换选中的情景模式。
   async handleSceneTap(e: WechatMiniprogram.TouchEvent) {
     if (!this.guardBluetoothAvailable()) {
       return
@@ -1024,9 +1023,7 @@ Page({
     })
   },
 
-  /**
-   * 打开时间选择弹层。
-   */
+  // 打开时间选择弹层。
   handleOpenTimeSheet() {
     if (!this.guardBluetoothAvailable()) {
       return
@@ -1045,9 +1042,7 @@ Page({
     })
   },
 
-  /**
-   * 选择预设时长后启动本地倒计时，不发送蓝牙指令。
-   */
+  // 选择预设时长后启动本地倒计时。
   async handleTimeOptionTap(e: WechatMiniprogram.TouchEvent) {
     const index = Number(e.currentTarget.dataset.index)
     const option = this.data.timerOptions[index]
@@ -1091,9 +1086,7 @@ Page({
     }
   },
 
-  /**
-   * 静态占位：只切换童锁提示，不发送蓝牙童锁指令。
-   */
+  // 切换童锁提示。
   async handleChildLockTap() {
     if (!this.guardBluetoothAvailable()) {
       return
@@ -1162,7 +1155,7 @@ Page({
       showSongSheet: false,
       showPlaylistSheet: false,
       sceneChannels: channels,
-      sceneTotalVolume: this.getSceneChannelsAverageVolume(channels),
+      sceneTotalVolume: this.getCurrentSceneTotalVolume(channels),
     })
   },
 
@@ -1268,7 +1261,6 @@ Page({
 
     this.setData({
       sceneChannels,
-      sceneTotalVolume: this.getSceneChannelsAverageVolume(sceneChannels),
     })
     this.persistCurrentSceneChannels(sceneChannels, this.data.sceneTotalVolume)
 
@@ -1386,7 +1378,7 @@ Page({
     })
 
     wx.showToast({
-      title: `宸查€夋嫨 ${songName}`,
+      title: `瀹告煡鈧瀚?${songName}`,
       icon: 'none',
     })
   },

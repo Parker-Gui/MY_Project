@@ -86,7 +86,7 @@ const bluetoothErrorMessages: Record<number, string> = {
   10013: '蓝牙写入数据格式异常，请检查协议帧',
 }
 
-const toBluetoothError = (message: string, error?: WechatMiniprogram.BluetoothError) => {
+const toBluetoothError = (message: string, error?: unknown) => {
   const errorInfo = error as { errCode?: number; errMsg?: string } | undefined
   const errCode = errorInfo && typeof errorInfo.errCode === 'number' ? errorInfo.errCode : undefined
   const friendlyMessage = errCode ? bluetoothErrorMessages[errCode] : ''

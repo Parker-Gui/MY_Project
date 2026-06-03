@@ -5,5 +5,6 @@ dist/
 .DS_Store
 *.log
 
-# 微信开发者工具本地私有配置
+# 本地 IDE 和微信开发者工具私有配置
+.vs/
 project.private.config.json
