@@ -20,6 +20,7 @@ let childLockTipTimer: number | undefined
 let countdownTimer: number | undefined
 let initialSyncTimer: number | undefined
 const SCENE_STORAGE_KEY = 'localSceneList'
+const PENDING_SELECTED_SCENE_ID_KEY = 'pendingSelectedSceneId'
 const RESET_GUIDE_STORAGE_KEY = 'shouldResetGuide'
 const CURRENT_DEVICE_STORAGE_KEY = 'currentDevice'
 const HISTORY_STORAGE_KEY = 'historyDevices'
@@ -237,12 +238,22 @@ Page({
 
   onShow() {
     const localScenes = readLocalScenes()
-    const selectedSceneIndex = Math.min(this.data.selectedSceneIndex, localScenes.length - 1)
+    const pendingSelectedSceneId = wx.getStorageSync(PENDING_SELECTED_SCENE_ID_KEY) as number | ''
+    const pendingSceneIndex = typeof pendingSelectedSceneId === 'number'
+      ? localScenes.findIndex((scene) => scene.id === pendingSelectedSceneId)
+      : -1
+    const selectedSceneIndex = pendingSceneIndex >= 0
+      ? pendingSceneIndex
+      : Math.min(this.data.selectedSceneIndex, localScenes.length - 1)
     const currentDevice = wx.getStorageSync(CURRENT_DEVICE_STORAGE_KEY) as CurrentDevice | ''
+
+    if (pendingSceneIndex >= 0) {
+      wx.removeStorageSync(PENDING_SELECTED_SCENE_ID_KEY)
+    }
 
     if (!currentDevice) {
       wx.showToast({
-        title: '璇峰厛杩炴帴璁惧',
+        title: '请先连接设备',
         icon: 'none',
       })
 
@@ -518,10 +529,15 @@ Page({
       return
     }
 
-    const nextScenes = scenes.map((_scene, index) => ({
+    const deviceScenes = scenes.map((_scene, index) => ({
       id: index + 1,
       name: `场景${index + 1}`,
     }))
+    const localScenes = readLocalScenes()
+    const nextScenes = [
+      ...deviceScenes,
+      ...localScenes.filter((scene) => scene.id > deviceScenes.length),
+    ]
 
     wx.setStorageSync(SCENE_STORAGE_KEY, nextScenes)
 

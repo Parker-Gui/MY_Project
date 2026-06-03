@@ -23,6 +23,7 @@ type ChannelConfig = {
 }
 
 const SCENE_STORAGE_KEY = 'localSceneList'
+const PENDING_SELECTED_SCENE_ID_KEY = 'pendingSelectedSceneId'
 
 const createDefaultSoundItems = (): SoundItem[] => [
   { id: 1, volume: 100, status: 1, enabled: true, removable: false, coverIndex: 0 },
@@ -242,6 +243,7 @@ Page({
 
     wx.setStorageSync(SCENE_STORAGE_KEY, nextScenes)
     wx.setStorageSync(getChannelConfigKey(this.data.sceneNumber), sceneConfig)
+    wx.setStorageSync(PENDING_SELECTED_SCENE_ID_KEY, this.data.sceneNumber)
     this.setData({
       hasSaved: true,
     })
