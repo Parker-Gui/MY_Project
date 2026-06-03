@@ -67,6 +67,7 @@ type ChannelConfig = {
   totalVolume: number
   selectedCoverIndex: number
   channels: ChannelItem[]
+  deletedChannelIds?: number[]
 }
 
 type SceneChannelView = ChannelItem & {
@@ -114,7 +115,16 @@ const readLocalScenes = () => {
   const storedScenes = wx.getStorageSync(SCENE_STORAGE_KEY) as LocalSceneItem[] | ''
 
   if (Array.isArray(storedScenes) && storedScenes.length) {
-    return storedScenes
+    const normalizedScenes = storedScenes.map((scene, index) => ({
+      ...scene,
+      name: typeof scene.name === 'string' && !scene.name.includes('鍦') ? scene.name : `场景${scene.id || index + 1}`,
+    }))
+
+    if (normalizedScenes.some((scene, index) => scene.name !== storedScenes[index].name)) {
+      wx.setStorageSync(SCENE_STORAGE_KEY, normalizedScenes)
+    }
+
+    return normalizedScenes
   }
 
   const defaultScenes = createDefaultScenes()
@@ -212,6 +222,7 @@ Page({
     isScenePlayback: true,
     sceneTotalVolume: 100,
     sceneChannels: [] as SceneChannelView[],
+    editingSceneChannelId: 0,
     isChildLocked: true,
     childLockMessage: '',
   },
@@ -469,6 +480,7 @@ Page({
     this.setData({
       currentSong: this.getAdjacentSongName(action),
       isPlaying: true,
+      isScenePlayback: false,
       showSceneChannelSheet: false,
     })
   },
@@ -488,7 +500,7 @@ Page({
     const sceneNumber = nextIndex + 1
     const storedConfig = wx.getStorageSync(getChannelConfigKey(sceneNumber)) as ChannelConfig | ''
     const channels = storedConfig && typeof storedConfig === 'object' && Array.isArray(storedConfig.channels)
-      ? this.toSceneChannelViews(storedConfig.channels)
+      ? this.toSceneChannelViews(storedConfig.channels, storedConfig.deletedChannelIds || [])
       : this.toSceneChannelViews([])
 
     this.setData({
@@ -563,7 +575,7 @@ Page({
     })
   },
 
-  normalizeSceneChannels(channels: ChannelItem[]) {
+  normalizeSceneChannels(channels: ChannelItem[], deletedChannelIds: number[] = []) {
     const normalized = channels.map((channel) => ({
       ...channel,
       status: typeof channel.status === 'number' ? channel.status : (channel.enabled ? 1 : 0),
@@ -571,7 +583,7 @@ Page({
     }))
 
     for (let id = 1; id <= 6; id += 1) {
-      if (!normalized.some((channel) => channel.id === id)) {
+      if (!normalized.some((channel) => channel.id === id) && !deletedChannelIds.includes(id)) {
         normalized.push({
           id,
           volume: 100,
@@ -589,8 +601,8 @@ Page({
       .slice(0, 6)
   },
 
-  toSceneChannelViews(channels: ChannelItem[]) {
-    return this.normalizeSceneChannels(channels).map((channel) => ({
+  toSceneChannelViews(channels: ChannelItem[], deletedChannelIds: number[] = []) {
+    return this.normalizeSceneChannels(channels, deletedChannelIds).map((channel) => ({
       ...channel,
       statusText: getChannelStatusText(channel.status),
     }))
@@ -604,12 +616,44 @@ Page({
     return Math.round(channels.reduce((sum, channel) => sum + channel.volume, 0) / channels.length)
   },
 
+  persistCurrentSceneChannels(channels: SceneChannelView[], totalVolume = this.getSceneChannelsAverageVolume(channels)) {
+    const sceneNumber = this.data.selectedSceneIndex + 1
+    const plainChannels = channels.map((channel) => ({
+      id: channel.id,
+      volume: channel.volume,
+      status: channel.status,
+      enabled: channel.status === 1,
+      removable: channel.removable,
+      coverIndex: channel.coverIndex,
+    }))
+    const deletedChannelIds = [1, 2, 3, 4, 5, 6].filter((id) => (
+      id > 3 && !plainChannels.some((channel) => channel.id === id)
+    ))
+
+    wx.setStorageSync(getChannelConfigKey(sceneNumber), {
+      totalVolume,
+      selectedCoverIndex: plainChannels[0] ? plainChannels[0].coverIndex : 0,
+      channels: plainChannels,
+      deletedChannelIds,
+    })
+  },
+
+  buildSceneChannelCommand(channels: SceneChannelView[]) {
+    return channels.map((channel) => ({
+      channel: channel.id,
+      volume: Math.max(channel.volume || 1, 1),
+      song: channel.coverIndex,
+      enabled: channel.status === 1,
+      status: channel.status,
+    }))
+  },
+
   getCurrentSceneChannels() {
     const sceneNumber = this.data.selectedSceneIndex + 1
     const storedConfig = wx.getStorageSync(getChannelConfigKey(sceneNumber)) as ChannelConfig | ''
 
     if (storedConfig && typeof storedConfig === 'object' && Array.isArray(storedConfig.channels)) {
-      return this.toSceneChannelViews(storedConfig.channels)
+      return this.toSceneChannelViews(storedConfig.channels, storedConfig.deletedChannelIds || [])
     }
 
     return this.toSceneChannelViews([])
@@ -1123,9 +1167,13 @@ Page({
   },
 
   handleCloseSongSheet() {
+    const shouldReturnToSceneSheet = this.data.editingSceneChannelId > 0
+
     this.setData({
       showSongSheet: false,
       showPlaylistSheet: false,
+      showSceneChannelSheet: shouldReturnToSceneSheet ? true : this.data.showSceneChannelSheet,
+      editingSceneChannelId: 0,
     })
   },
 
@@ -1146,33 +1194,87 @@ Page({
     })
   },
 
-  handleSceneTotalVolumeChange(e: WechatMiniprogram.SliderChange) {
+  handleSceneTotalVolumeChange(e: WechatMiniprogram.CustomEvent<{ value: number }>) {
     const totalVolume = e.detail.value
 
     this.setData({
       sceneTotalVolume: totalVolume,
-      sceneChannels: this.data.sceneChannels.map((channel) => ({
-        ...channel,
-        volume: totalVolume,
-      })),
     })
+    this.persistCurrentSceneChannels(this.data.sceneChannels, totalVolume)
   },
 
-  handleSceneChannelVolumeChange(e: WechatMiniprogram.SliderChange) {
-    const id = Number(e.currentTarget.dataset.id)
-
-    this.setData({
-      sceneChannels: this.data.sceneChannels.map((channel) => {
-        if (channel.id !== id) {
-          return channel
-        }
+  handleSceneChannelVolumeChange(e: WechatMiniprogram.CustomEvent<{ id: number, value: number }>) {
+    const { id, value } = e.detail
+    const sceneChannels = this.data.sceneChannels.map((channel) => {
+      if (channel.id !== id) {
+        return channel
+      }
 
         return {
           ...channel,
-          volume: e.detail.value,
+          volume: value,
         }
-      }),
+      })
+
+    this.setData({
+      sceneChannels,
     })
+    this.persistCurrentSceneChannels(sceneChannels, this.data.sceneTotalVolume)
+  },
+
+  handleSceneChannelMusicTap(e: WechatMiniprogram.CustomEvent<{ id: number }>) {
+    const { id } = e.detail
+
+    this.setData({
+      editingSceneChannelId: id,
+      showSceneChannelSheet: false,
+      showSongSheet: true,
+      showPlaylistSheet: false,
+    })
+  },
+
+  async handleSceneChannelStatusTap(e: WechatMiniprogram.CustomEvent<{ id: number }>) {
+    if (!this.guardBluetoothAvailable()) {
+      return
+    }
+
+    const { id } = e.detail
+    const sceneChannels = this.data.sceneChannels.map((channel) => {
+      if (channel.id !== id) {
+        return channel
+      }
+
+      const nextStatus = channel.status === 1 ? 0 : 1
+
+      return {
+        ...channel,
+        status: nextStatus,
+        enabled: nextStatus === 1,
+        statusText: getChannelStatusText(nextStatus),
+      }
+    })
+
+    this.setData({
+      sceneChannels,
+    })
+    this.persistCurrentSceneChannels(sceneChannels, this.data.sceneTotalVolume)
+
+    await sendCommand(buildSceneUpdate(this.data.selectedSceneIndex, this.buildSceneChannelCommand(sceneChannels)))
+  },
+
+  async handleSceneChannelDeleteTap(e: WechatMiniprogram.CustomEvent<{ id: number }>) {
+    const { id } = e.detail
+    const sceneChannels = this.data.sceneChannels.filter((channel) => channel.id !== id)
+
+    this.setData({
+      sceneChannels,
+      sceneTotalVolume: this.getSceneChannelsAverageVolume(sceneChannels),
+    })
+    this.persistCurrentSceneChannels(sceneChannels, this.data.sceneTotalVolume)
+
+    if (sceneChannels.length && this.guardBluetoothAvailable()) {
+      await sendCommand(buildSceneUpdate(this.data.selectedSceneIndex, this.buildSceneChannelCommand(sceneChannels)))
+    }
   },
 
   handleSongCategoryTap(e: WechatMiniprogram.TouchEvent) {
@@ -1212,6 +1314,11 @@ Page({
       return
     }
 
+    if (this.data.editingSceneChannelId) {
+      await this.selectSongForSceneChannel(songName)
+      return
+    }
+
     const songId = getSongIdFromName(songName)
     const channels = this.buildCurrentSceneChannels(songId)
     const sceneIndex = this.data.selectedSceneIndex
@@ -1231,6 +1338,7 @@ Page({
     this.setData({
       currentSong: songName,
       isPlaying: true,
+      isScenePlayback: false,
       isMuted: false,
       volume: this.data.volume > 0 ? this.data.volume : this.data.lastVolume || 100,
       showSongSheet: false,
@@ -1239,6 +1347,46 @@ Page({
 
     wx.showToast({
       title: `已选择 ${songName}`,
+      icon: 'none',
+    })
+  },
+
+  async selectSongForSceneChannel(songName: string) {
+    const songId = getSongIdFromName(songName)
+    const channelId = this.data.editingSceneChannelId
+    const sceneChannels = this.data.sceneChannels.map((channel) => {
+      if (channel.id !== channelId) {
+        return channel
+      }
+
+      return {
+        ...channel,
+        coverIndex: songId,
+        status: 1,
+        enabled: true,
+        statusText: getChannelStatusText(1),
+      }
+    })
+    const sent = await sendCommand(buildSceneUpdate(this.data.selectedSceneIndex, this.buildSceneChannelCommand(sceneChannels)))
+
+    if (!sent) {
+      return
+    }
+
+    this.persistCurrentSceneChannels(sceneChannels, this.data.sceneTotalVolume)
+    this.setData({
+      currentSong: songName,
+      isPlaying: true,
+      isMuted: false,
+      sceneChannels,
+      showSongSheet: false,
+      showPlaylistSheet: false,
+      showSceneChannelSheet: true,
+      editingSceneChannelId: 0,
+    })
+
+    wx.showToast({
+      title: `宸查€夋嫨 ${songName}`,
       icon: 'none',
     })
   },
@@ -1259,6 +1407,7 @@ Page({
     this.setData({
       currentSong: nextSongName,
       isPlaying: true,
+      isScenePlayback: false,
       isMuted: false,
     })
   },

@@ -1,9 +1,10 @@
-import { sendCommand } from '../../services/device-control'
+﻿import { sendCommand } from '../../services/device-control'
 import { buildSceneAdd } from '../../services/protocol'
 
 type SoundItem = {
   id: number
   volume: number
+  status: number
   enabled: boolean
   removable: boolean
   coverIndex: number
@@ -24,7 +25,12 @@ type ChannelConfig = {
 const SCENE_STORAGE_KEY = 'localSceneList'
 
 const createDefaultSoundItems = (): SoundItem[] => [
-  { id: 1, volume: 100, enabled: true, removable: false, coverIndex: 0 },
+  { id: 1, volume: 100, status: 1, enabled: true, removable: false, coverIndex: 0 },
+  { id: 2, volume: 0, status: 1, enabled: true, removable: false, coverIndex: 0 },
+  { id: 3, volume: 50, status: 1, enabled: true, removable: false, coverIndex: 0 },
+  { id: 4, volume: 100, status: 0, enabled: false, removable: true, coverIndex: 0 },
+  { id: 5, volume: 100, status: 1, enabled: true, removable: true, coverIndex: 0 },
+  { id: 6, volume: 100, status: 1, enabled: true, removable: true, coverIndex: 0 },
 ]
 
 const createDefaultScenes = (): SceneItem[] => [
@@ -40,7 +46,16 @@ const readLocalScenes = () => {
   const storedScenes = wx.getStorageSync(SCENE_STORAGE_KEY) as SceneItem[] | ''
 
   if (Array.isArray(storedScenes) && storedScenes.length) {
-    return storedScenes
+    const normalizedScenes = storedScenes.map((scene, index) => ({
+      ...scene,
+      name: typeof scene.name === 'string' && !scene.name.includes('鍦') ? scene.name : `场景${scene.id || index + 1}`,
+    }))
+
+    if (normalizedScenes.some((scene, index) => scene.name !== storedScenes[index].name)) {
+      wx.setStorageSync(SCENE_STORAGE_KEY, normalizedScenes)
+    }
+
+    return normalizedScenes
   }
 
   const defaultScenes = createDefaultScenes()
@@ -50,6 +65,31 @@ const readLocalScenes = () => {
 }
 
 const getChannelConfigKey = (sceneNumber: number) => `channelConfig:${sceneNumber}`
+
+const normalizeSoundItem = (item: SoundItem): SoundItem => {
+  const status = typeof item.status === 'number' ? item.status : (item.enabled ? 1 : 0)
+
+  return {
+    ...item,
+    status,
+    enabled: status === 1,
+  }
+}
+
+const normalizeSoundItems = (items: SoundItem[]): SoundItem[] => {
+  const normalized = items.map(normalizeSoundItem)
+
+  createDefaultSoundItems().forEach((defaultItem) => {
+    if (!normalized.some((item) => item.id === defaultItem.id)) {
+      normalized.push(defaultItem)
+    }
+  })
+
+  return normalized
+    .slice()
+    .sort((left, right) => left.id - right.id)
+    .slice(0, 6)
+}
 
 Page({
   data: {
@@ -75,33 +115,37 @@ Page({
       return
     }
 
-    const firstChannel = config.channels[0] || createDefaultSoundItems()[0]
-
     this.setData({
       totalVolume: config.totalVolume,
-      soundItems: [
-        {
-          ...firstChannel,
-          coverIndex: config.selectedCoverIndex,
-        },
-      ],
+      soundItems: normalizeSoundItems(config.channels),
+    })
+  },
+  handleBack() {
+    const pages = getCurrentPages()
+
+    if (pages.length > 1) {
+      wx.navigateBack()
+      return
+    }
+
+    wx.reLaunch({
+      url: '/pages/home/home',
     })
   },
 
+
   /**
-   * 调整总音量，保存时统一同步到设备。
-   */
-  handleTotalVolumeChange(e: WechatMiniprogram.SliderChange) {
+   * 璋冩暣鎬婚煶閲忥紝淇濆瓨鏃剁粺涓€鍚屾鍒拌澶囥€?   */
+  handleTotalVolumeChange(e: WechatMiniprogram.CustomEvent<{ value: number }>) {
     this.setData({
       totalVolume: e.detail.value,
     })
   },
 
   /**
-   * 调整某个声音条目的音量，保存时统一同步到设备。
-   */
-  handleSoundVolumeChange(e: WechatMiniprogram.SliderChange) {
-    const id = Number(e.currentTarget.dataset.id)
+   * 璋冩暣鏌愪釜澹伴煶鏉＄洰鐨勯煶閲忥紝淇濆瓨鏃剁粺涓€鍚屾鍒拌澶囥€?   */
+  handleSoundVolumeChange(e: WechatMiniprogram.CustomEvent<{ id: number, value: number }>) {
+    const { id, value } = e.detail
     const soundItems = this.data.soundItems.map((item) => {
       if (item.id !== id) {
         return item
@@ -109,7 +153,7 @@ Page({
 
       return {
         ...item,
-        volume: e.detail.value,
+        volume: value,
       }
     })
 
@@ -119,18 +163,20 @@ Page({
   },
 
   /**
-   * 切换声音条目开关，保存时统一同步到设备。
-   */
-  handleSoundSwitchChange(e: WechatMiniprogram.SwitchChange) {
-    const id = Number(e.currentTarget.dataset.id)
+   * 鍒囨崲澹伴煶鏉＄洰寮€鍏筹紝淇濆瓨鏃剁粺涓€鍚屾鍒拌澶囥€?   */
+  handleSoundSwitchChange(e: WechatMiniprogram.CustomEvent<{ id: number }>) {
+    const { id } = e.detail
     const soundItems = this.data.soundItems.map((item) => {
       if (item.id !== id) {
         return item
       }
 
+      const nextEnabled = !item.enabled
+
       return {
         ...item,
-        enabled: e.detail.value,
+        enabled: nextEnabled,
+        status: nextEnabled ? 1 : 0,
       }
     })
 
@@ -155,6 +201,14 @@ Page({
     })
   },
 
+  handleDeleteSound(e: WechatMiniprogram.CustomEvent<{ id: number }>) {
+    const { id } = e.detail
+
+    this.setData({
+      soundItems: this.data.soundItems.filter((item) => item.id !== id),
+    })
+  },
+
   async handleSave() {
     if (this.data.hasSaved) {
       return
@@ -162,29 +216,17 @@ Page({
 
     const scenes = readLocalScenes()
     const storedConfig = wx.getStorageSync(getChannelConfigKey(this.data.sceneNumber)) as ChannelConfig | ''
-    const firstSoundItem = this.data.soundItems[0]
     const sceneConfig: ChannelConfig = storedConfig && typeof storedConfig === 'object'
       ? {
           ...storedConfig,
           totalVolume: this.data.totalVolume,
-          selectedCoverIndex: firstSoundItem ? firstSoundItem.coverIndex : storedConfig.selectedCoverIndex,
-          channels: storedConfig.channels.map((channel, index) => {
-            if (index !== 0 || !firstSoundItem) {
-              return channel
-            }
-
-            return {
-              ...channel,
-              volume: firstSoundItem.volume,
-              enabled: firstSoundItem.enabled,
-              coverIndex: firstSoundItem.coverIndex,
-            }
-          }),
+          selectedCoverIndex: this.data.soundItems[0] ? this.data.soundItems[0].coverIndex : storedConfig.selectedCoverIndex,
+          channels: this.data.soundItems.map(normalizeSoundItem),
         }
       : {
           totalVolume: this.data.totalVolume,
-          selectedCoverIndex: firstSoundItem ? firstSoundItem.coverIndex : 0,
-          channels: this.data.soundItems,
+          selectedCoverIndex: this.data.soundItems[0] ? this.data.soundItems[0].coverIndex : 0,
+          channels: this.data.soundItems.map(normalizeSoundItem),
         }
 
     const nextScene: SceneItem = {
@@ -210,7 +252,7 @@ Page({
     })
 
     setTimeout(() => {
-      wx.navigateBack()
+      this.handleBack()
     }, 600)
   },
 
@@ -220,6 +262,7 @@ Page({
       volume: Math.max(channel.volume, 1),
       song: channel.coverIndex,
       enabled: channel.enabled,
+      status: channel.status,
     }))
 
     try {

@@ -1,0 +1,303 @@
+.scene-editor {
+  color: #ffffff;
+  box-sizing: border-box;
+}
+
+.scene-editor-page {
+  min-height: 100vh;
+  padding: 42rpx 32rpx 190rpx;
+  background: linear-gradient(115deg, #171717 0%, #2c2c2c 56%, #151515 100%);
+}
+
+.scene-editor-sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 78vh;
+  padding: 26rpx 32rpx 30rpx;
+  border-radius: 30rpx 30rpx 0 0;
+  background: #303030;
+  z-index: 25;
+}
+
+.panel-handle {
+  width: 56rpx;
+  height: 8rpx;
+  margin: 36rpx auto 56rpx;
+  border-radius: 8rpx;
+  background: rgba(255, 255, 255, 0.76);
+}
+
+.scene-editor-sheet .panel-handle {
+  margin: 0 auto 48rpx;
+}
+
+.editor-title {
+  display: block;
+  font-size: 52rpx;
+  line-height: 72rpx;
+  font-weight: 700;
+}
+
+.scene-editor-sheet .editor-title {
+  font-size: 42rpx;
+  line-height: 58rpx;
+}
+
+.total-volume-card {
+  height: 120rpx;
+  display: flex;
+  align-items: center;
+  margin-top: 62rpx;
+  padding: 0 28rpx;
+  border-radius: 56rpx;
+  background: rgba(255, 255, 255, 0.18);
+  box-sizing: border-box;
+}
+
+.scene-editor-sheet .total-volume-card {
+  height: 108rpx;
+  margin-top: 36rpx;
+}
+
+.total-volume-title {
+  flex: none;
+  margin-right: 28rpx;
+  font-size: 38rpx;
+  line-height: 52rpx;
+  font-weight: 700;
+}
+
+.scene-editor-sheet .total-volume-title {
+  margin-right: 24rpx;
+  font-size: 34rpx;
+  line-height: 48rpx;
+}
+
+.volume-icon,
+.row-volume-icon {
+  width: 42rpx;
+  height: 42rpx;
+  flex: none;
+}
+
+.scene-editor-sheet .row-volume-icon {
+  width: 40rpx;
+  height: 40rpx;
+  margin-right: 18rpx;
+}
+
+.total-volume-slider {
+  flex: 1;
+  margin: 0 20rpx;
+}
+
+.volume-value,
+.row-volume-value {
+  width: 90rpx;
+  flex: none;
+  color: #ffffff;
+  font-size: 32rpx;
+  line-height: 44rpx;
+  text-align: right;
+}
+
+.scene-editor-sheet .volume-value,
+.scene-editor-sheet .row-volume-value {
+  width: 82rpx;
+  font-size: 28rpx;
+  line-height: 40rpx;
+}
+
+.sound-scroll {
+  height: calc(100vh - 430rpx);
+  margin-top: 44rpx;
+  border-top: 2rpx solid rgba(255, 255, 255, 0.08);
+}
+
+.sound-scroll-actions {
+  height: calc(100vh - 540rpx);
+}
+
+.scene-editor-sheet .sound-scroll {
+  height: calc(78vh - 258rpx);
+  margin-top: 34rpx;
+}
+
+.sound-row {
+  min-height: 174rpx;
+  display: flex;
+  align-items: center;
+  padding: 28rpx 0;
+  border-bottom: 2rpx solid rgba(255, 255, 255, 0.08);
+  box-sizing: border-box;
+}
+
+.scene-editor-sheet .sound-row {
+  min-height: 154rpx;
+  padding: 24rpx 0;
+}
+
+.sound-cover {
+  position: relative;
+  width: 104rpx;
+  height: 104rpx;
+  flex: none;
+  margin-right: 34rpx;
+  border-radius: 50%;
+  border: 8rpx solid rgba(155, 155, 155, 0.9);
+  box-sizing: border-box;
+}
+
+.scene-editor-sheet .sound-cover {
+  margin-right: 24rpx;
+}
+
+.sound-cover-bg {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #6fc36a 0%, #d9f2a5 42%, #8cc9f0 100%);
+}
+
+.cover-bg-0 {
+  background: linear-gradient(135deg, #d8edf9 0%, #ffffff 40%, #87afd0 100%);
+}
+
+.cover-bg-1 {
+  background: linear-gradient(135deg, #f1e6d4 0%, #c99862 48%, #ffffff 100%);
+}
+
+.cover-bg-2 {
+  background: linear-gradient(135deg, #d7e6f4 0%, #ffffff 40%, #516778 100%);
+}
+
+.sound-cover-hole {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 30rpx;
+  height: 30rpx;
+  border-radius: 50%;
+  background: #303030;
+  transform: translate(-50%, -50%);
+}
+
+.sound-music-icon {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 42rpx;
+  height: 42rpx;
+  transform: translate(-50%, -50%);
+  opacity: 0.92;
+}
+
+.sound-delete {
+  position: absolute;
+  right: -18rpx;
+  top: -18rpx;
+  width: 48rpx;
+  height: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #e92710;
+  color: #ffffff;
+  font-size: 40rpx;
+  line-height: 44rpx;
+  z-index: 2;
+}
+
+.row-slider {
+  flex: 1;
+  min-width: 0;
+  margin: 0 20rpx;
+}
+
+.scene-editor-sheet .row-slider {
+  margin: 0 14rpx 0 0;
+}
+
+.sound-switch {
+  position: relative;
+  width: 58rpx;
+  height: 34rpx;
+  flex: none;
+  margin-left: 24rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.62);
+  transition: background-color 0.18s ease;
+}
+
+.scene-editor-sheet .sound-switch {
+  margin-left: 14rpx;
+}
+
+.sound-switch-on {
+  background: #2d86ff;
+}
+
+.sound-switch-thumb {
+  position: absolute;
+  left: 4rpx;
+  top: 4rpx;
+  width: 26rpx;
+  height: 26rpx;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.22);
+  transition: transform 0.18s ease;
+}
+
+.sound-switch-on .sound-switch-thumb {
+  transform: translateX(24rpx);
+}
+
+.action-row {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 72rpx;
+  padding-bottom: 24rpx;
+}
+
+.scene-editor-page .action-row {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin-top: 0;
+  padding: 24rpx 32rpx calc(env(safe-area-inset-bottom) + 24rpx);
+  background: linear-gradient(180deg, rgba(26, 26, 26, 0) 0%, #202020 28%, #202020 100%);
+  box-sizing: border-box;
+  z-index: 80;
+}
+
+.save-button,
+.reset-button {
+  width: 320rpx;
+  height: 104rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 58rpx;
+  font-size: 42rpx;
+  line-height: 58rpx;
+}
+
+.save-button {
+  background: #2d86ff;
+  color: #ffffff;
+}
+
+.reset-button {
+  background: rgba(255, 255, 255, 0.62);
+  color: #303030;
+}
+
+.save-button::after,
+.reset-button::after {
+  border: 0;
+}

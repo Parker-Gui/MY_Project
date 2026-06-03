@@ -116,13 +116,19 @@ page {
 
 .connection-status {
   width: 132rpx;
+  height: 46rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   margin: 16rpx auto 0;
-  padding: 8rpx 22rpx;
+  padding: 0 22rpx;
   border-radius: 24rpx;
   background: rgba(51, 211, 128, 0.18);
   color: #68f0a3;
   font-size: 22rpx;
-  line-height: 30rpx;
+  line-height: 1;
+  text-align: center;
+  box-sizing: border-box;
 }
 
 .connection-status-off {
@@ -408,153 +414,6 @@ page {
   background: #303030;
   box-sizing: border-box;
   z-index: 31;
-}
-
-.scene-channel-sheet {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 78vh;
-  padding: 26rpx 32rpx 30rpx;
-  border-radius: 30rpx 30rpx 0 0;
-  background: #303030;
-  box-sizing: border-box;
-  z-index: 25;
-}
-
-.scene-total-card {
-  height: 108rpx;
-  display: flex;
-  align-items: center;
-  margin-top: 36rpx;
-  padding: 0 28rpx;
-  border-radius: 56rpx;
-  background: rgba(255, 255, 255, 0.18);
-  box-sizing: border-box;
-}
-
-.scene-total-title {
-  flex: none;
-  margin-right: 24rpx;
-  color: #ffffff;
-  font-size: 34rpx;
-  line-height: 48rpx;
-  font-weight: 700;
-}
-
-.scene-row-sound {
-  width: 40rpx;
-  height: 40rpx;
-  flex: none;
-  margin-right: 18rpx;
-}
-
-.scene-total-slider {
-  flex: 1;
-  margin: 0 20rpx 0 0;
-}
-
-.scene-volume-text {
-  width: 82rpx;
-  flex: none;
-  color: #ffffff;
-  font-size: 28rpx;
-  line-height: 40rpx;
-  text-align: right;
-}
-
-.scene-channel-scroll {
-  height: calc(78vh - 258rpx);
-  margin-top: 34rpx;
-  border-top: 2rpx solid rgba(255, 255, 255, 0.08);
-}
-
-.scene-channel-row {
-  min-height: 154rpx;
-  display: flex;
-  align-items: center;
-  padding: 24rpx 0;
-  border-bottom: 2rpx solid rgba(255, 255, 255, 0.08);
-  box-sizing: border-box;
-}
-
-.scene-channel-cover {
-  position: relative;
-  width: 104rpx;
-  height: 104rpx;
-  flex: none;
-  margin-right: 24rpx;
-  border-radius: 50%;
-  border: 8rpx solid rgba(155, 155, 155, 0.9);
-  box-sizing: border-box;
-}
-
-.scene-channel-cover-bg {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-}
-
-.scene-channel-cover-hole {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 30rpx;
-  height: 30rpx;
-  border-radius: 50%;
-  background: #303030;
-  transform: translate(-50%, -50%);
-}
-
-.scene-channel-badge {
-  position: absolute;
-  right: -18rpx;
-  top: -18rpx;
-  width: 48rpx;
-  height: 48rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  background: #e92710;
-  color: #ffffff;
-  font-size: 40rpx;
-  line-height: 44rpx;
-}
-
-.scene-row-slider {
-  flex: 1;
-  min-width: 0;
-  margin: 0 14rpx 0 0;
-}
-
-.scene-status-pill {
-  width: 86rpx;
-  height: 46rpx;
-  flex: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-left: 14rpx;
-  border-radius: 24rpx;
-  background: rgba(255, 255, 255, 0.18);
-  color: #ffffff;
-  font-size: 22rpx;
-  line-height: 30rpx;
-}
-
-.scene-status-0 {
-  background: rgba(255, 255, 255, 0.18);
-}
-
-.scene-status-1 {
-  background: #2d86ff;
-}
-
-.scene-status-2 {
-  background: rgba(255, 184, 62, 0.78);
-  color: #303030;
 }
 
 .sheet-handle {

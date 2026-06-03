@@ -1,6 +1,6 @@
-<view class="home-page">
+﻿<view class="home-page">
   <navigation-bar title="{{currentDeviceName}}" back="{{true}}" color="#FFFFFF" background="transparent"></navigation-bar>
-  <view class="home-back-button" bindtap="handleBackToGuide">‹</view>
+  <view class="home-back-button" bindtap="handleBackToGuide">←</view>
 
   <scroll-view class="home-scroll" scroll-y enhanced show-scrollbar="{{false}}" type="list">
     <view class="home-content {{isBluetoothOff ? 'home-content-bluetooth-off' : ''}}">
@@ -179,58 +179,20 @@
     </scroll-view>
   </view>
 
-  <view wx:if="{{showSceneChannelSheet}}" class="scene-channel-sheet">
-    <view class="sheet-handle" bindtap="handleCloseSceneChannelSheet"></view>
-    <text class="sheet-title">{{scenes[selectedSceneIndex]}} 设置</text>
-
-    <view class="scene-total-card">
-      <text class="scene-total-title">总音量</text>
-      <image class="scene-row-sound" src="./sound.png" mode="aspectFit"></image>
-      <slider
-        class="scene-total-slider"
-        min="0"
-        max="100"
-        value="{{sceneTotalVolume}}"
-        block-size="28"
-        activeColor="#2d86ff"
-        backgroundColor="#ffffff"
-        block-color="#2d86ff"
-        bindchange="handleSceneTotalVolumeChange"
-        bindchanging="handleSceneTotalVolumeChange"
-      />
-      <text class="scene-volume-text">{{sceneTotalVolume}}%</text>
-    </view>
-
-    <scroll-view class="scene-channel-scroll" scroll-y type="list">
-      <view
-        class="scene-channel-row"
-        wx:for="{{sceneChannels}}"
-        wx:key="id"
-      >
-        <view class="scene-channel-cover">
-          <view class="scene-channel-cover-bg cover-bg-{{item.coverIndex % 3}}"></view>
-          <view class="scene-channel-cover-hole"></view>
-          <view wx:if="{{item.status === 0}}" class="scene-channel-badge">×</view>
-        </view>
-        <image class="scene-row-sound" src="./sound.png" mode="aspectFit"></image>
-        <slider
-          class="scene-row-slider"
-          min="0"
-          max="100"
-          value="{{item.volume}}"
-          block-size="26"
-          activeColor="{{item.status === 1 ? '#2d86ff' : '#ffffff'}}"
-          backgroundColor="#ffffff"
-          block-color="#2d86ff"
-          data-id="{{item.id}}"
-          bindchange="handleSceneChannelVolumeChange"
-          bindchanging="handleSceneChannelVolumeChange"
-        />
-        <text class="scene-volume-text">{{item.volume}}%</text>
-        <view class="scene-status-pill scene-status-{{item.status}}">{{item.statusText}}</view>
-      </view>
-    </scroll-view>
-  </view>
+  <scene-channel-editor
+    wx:if="{{showSceneChannelSheet}}"
+    title="{{scenes[selectedSceneIndex]}} 设置"
+    total-volume="{{sceneTotalVolume}}"
+    channels="{{sceneChannels}}"
+    variant="sheet"
+    show-actions="{{false}}"
+    bindclose="handleCloseSceneChannelSheet"
+    bindtotalvolumechange="handleSceneTotalVolumeChange"
+    bindchannelvolumechange="handleSceneChannelVolumeChange"
+    bindstatuschange="handleSceneChannelStatusTap"
+    bindmusicselect="handleSceneChannelMusicTap"
+    bindchanneldelete="handleSceneChannelDeleteTap"
+  ></scene-channel-editor>
 
   <view wx:if="{{showTimeSheet}}" class="time-mask" bindtap="handleCloseTimeSheet"></view>
   <view wx:if="{{showTimeSheet}}" class="time-sheet">
