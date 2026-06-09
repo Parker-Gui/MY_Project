@@ -14,6 +14,8 @@ type GuideDevice = {
   isConnected: boolean
   isConnecting: boolean
   deviceId?: string
+  localName?: string
+  RSSI?: number
 }
 
 type HistoryDevice = {
@@ -150,6 +152,21 @@ Page({
     const exists = this.data.mockDevices.some((item) => item.id === device.deviceId)
 
     if (exists) {
+      this.setData({
+        mockDevices: this.data.mockDevices.map((item) => {
+          if (item.id !== device.deviceId) {
+            return item
+          }
+
+          return {
+            ...item,
+            deviceId: device.deviceId,
+            name: device.name,
+            localName: device.localName,
+            RSSI: device.RSSI,
+          }
+        }),
+      })
       return
     }
 
@@ -159,6 +176,8 @@ Page({
         {
           id: device.deviceId,
           deviceId: device.deviceId,
+          localName: device.localName,
+          RSSI: device.RSSI,
           name: device.name,
           tip: '点击右边连接设备',
           status: '未连接',

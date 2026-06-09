@@ -60,6 +60,12 @@ const uuidIncludes = (uuid: string, shortUuid: string) => {
   return uuid.toUpperCase().includes(shortUuid)
 }
 
+const isTargetDeviceName = (name: string) => {
+  const normalizedName = name.trim().toUpperCase()
+
+  return normalizedName.startsWith('MF') || normalizedName.startsWith('MBZ')
+}
+
 const getDeviceDisplayName = (device: BluetoothDeviceItem) => {
   return device.name || device.localName || '未知设备'
 }
@@ -189,7 +195,7 @@ const openBluetoothAdapter = () => {
 const startBluetoothDevicesDiscovery = () => {
   return new Promise<void>((resolve, reject) => {
     wx.startBluetoothDevicesDiscovery({
-      allowDuplicatesKey: false,
+      allowDuplicatesKey: true,
       success: () => resolve(),
       fail: (error) => reject(toBluetoothError('开始扫描失败', error)),
     })
@@ -348,6 +354,10 @@ export const startDiscovery = async (onDeviceFound: (device: BluetoothDeviceItem
       const name = getDeviceDisplayName(device)
 
       if (!name || name === '未知设备') {
+        return
+      }
+
+      if (!isTargetDeviceName(name)) {
         return
       }
 

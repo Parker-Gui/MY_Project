@@ -585,12 +585,18 @@ Page({
     const sceneNumber = this.data.selectedSceneIndex + 1
     const nextConfig = createChannelConfigFromReport(channels)
     const sceneChannels = this.toSceneChannelViews(nextConfig.channels)
+    const activeChannels = sceneChannels.filter((channel) => channel.status === 1)
+    const isScenePlayback = activeChannels.length > 2
+    const currentSongId = activeChannels[0]?.coverIndex ?? sceneChannels[0]?.coverIndex ?? 0
 
     wx.setStorageSync(getChannelConfigKey(sceneNumber), nextConfig)
     this.setData({
-      isScenePlayback: sceneChannels.filter((channel) => channel.status === 1).length > 2,
+      currentSong: isScenePlayback ? '' : this.getSongNameById(currentSongId),
+      isPlaying: activeChannels.length > 0,
+      isScenePlayback,
       sceneTotalVolume: nextConfig.totalVolume,
       sceneChannels: this.data.showSceneChannelSheet ? sceneChannels : this.data.sceneChannels,
+      showSceneChannelSheet: this.data.showSceneChannelSheet && isScenePlayback,
     })
   },
 
@@ -1296,6 +1302,13 @@ Page({
       ...this.data.songs,
       ...this.data.playlistSongs.map((song) => song.name),
     ]
+  },
+
+  getSongNameById(songId: number) {
+    const songs = this.getAllSongNames()
+    const matchedSong = songs.find((song) => getSongIdFromName(song) === songId)
+
+    return matchedSong || (songId > 0 ? `第${songId}首歌曲` : '')
   },
 
   getAdjacentSongName(action: 'prev' | 'next') {
